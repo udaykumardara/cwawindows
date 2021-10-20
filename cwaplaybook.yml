@@ -1,0 +1,54 @@
+---
+-
+  hosts: win
+  become_method: runas
+  tags:
+    - download
+  tasks:
+    - name: Install package
+      win_package:
+        path: "https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi"
+        creates_service: Cloudwatch agent
+    - name: Copy the content
+      win_copy:
+        content:
+            logs:
+              logs_collected:
+                windows_events:
+                  collect_list:
+                    - event_format: xml
+                      event_levels:
+                        - VERBOSE
+                        - INFORMATION
+                        - WARNING
+                        - ERROR
+                        - CRITICAL
+                      event_name: System
+                      log_group_name: System
+                      log_stream_name: '{instance_id}'
+            metrics:
+              append_dimensions:
+                AutoScalingGroupName: ${aws:AutoScalingGroupName}
+                ImageId: ${aws:ImageId}
+                InstanceId: ${aws:InstanceId}
+                InstanceType: ${aws:InstanceType}
+              metrics_collected:
+                LogicalDisk:
+                  measurement:
+                    - '% Free Space'
+                  metrics_collection_interval: 60
+                  resources:
+                    - '*'
+                Memory:
+                  measurement:
+                    - '% Committed Bytes In Use'
+                  metrics_collection_interval: 60
+                statsd:
+                  metrics_aggregation_interval: 60
+                  metrics_collection_interval: 10
+                  service_address: ':8125'
+        dest: C:\Program Files\Amazon\AmazonCloudWatchAgent\config.json
+    - name: start windows cloudwatch agent
+      win_command: powershell.exe ./amazon-cloudwatch-agent-ctl.ps1 -a fetch-config -m ec2 -c file:'C:\Program Files\Amazon\AmazonCloudWatchAgent\config.json' -s
+      args:
+        chdir: C:\Program Files\Amazon\AmazonCloudWatchAgent
