@@ -1,0 +1,105 @@
+Create ec2 2 instances Linux and windows
+
+Ansible Control node : 
+Windows 10 node: 
+
+Part 1
+
+Step: 1
+First we need to get Ansible installed on the Control node
+Firstly, we need to confirm if Python3 is installed. go to the root user
+
+# sudo dnf install python3
+
+# sudo alternatives --set python /usr/bin/python3
+
+check the verion 
+
+# python --version
+
+
+Step 2: Install a virtual environment for running Ansible
+(This will keep at bay issues such as dependency problems and package conflicts.)
+
+# sudo dnf install python3-virtualenv
+
+After the installation of the virtual environment, create a virtual workspace by running:
+
+# virtualenv env
+
+# source env/bin/activate
+
+
+Step 3: Install Ansible
+
+# pip install ansible
+
+Check the Version 
+
+# ansible --version
+
+To test Ansible and see if it’s working on our Ansible Control server run:
+
+# ansible localhost -m ping
+
+we need to define the Windows host or system on a host file on the Ansible control node. Therefore, open the default hosts file
+# vim /etc/ansible/hosts
+
+we need to define the Windows host or system on a host file on the Ansible control node. Therefore, open the default hosts file
+
+[winhost]
+Ip 
+
+[winhost:wars]
+ansible_user=Username
+ansible_password=password
+ansible_connection=winrm
+ansible_winrm_server_cert_validation=ignore
+
+
+Step 4: Install Pywinrm
+For Unix systems where Ansible uses SSH to communicate with remote hosts, here To communicate with Windows hosts, you need to install Winrm.
+
+# pip install pywinrm
+
+
+
+Part 2
+
+we are going to configure our Windows 10 remote host system to connect with the Ansible Control node. We are going to install the WinRM listener- short for Windows Remote – which will allow the connection between the Windows host system and the Ansible server.
+
+Prerequisite
+ensure that you are using Windows Server 2008 and later versions
+system is running .NET Framework 4.0 and later.
+Windows PowerShell should be Version 3.0 & later
+
+WinRM can be installed using a script that you can download from
+https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1
+
+
+saved the file on the Desktop under the name  ConfigureRemotingForAnsible.ps1
+
+Open the Powershell, Navigate to the script location and run it. 
+
+.\ConfigureRemotingForAnsible.ps1
+
+Part 3: Connecting to Windows Host from Ansible Control Node
+
+To test connectivity to the Windows 10 host, run the command:
+
+# ansible winhost -m win_ping
+
+
+Part 4:
+
+Creating and running a playbook for Windows 10 host to install the cloudwatchagent
+
+cwaplaybook.yml
+
+
+run the playbook
+
+# ansible-playbook cwaplaybook.yml
+
+
+The cloudwatch agent will be installed and configured in the windows host, we can check the log reports in AWS console
