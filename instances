@@ -48,7 +48,7 @@ we need to define the Windows host or system on a host file on the Ansible contr
 we need to define the Windows host or system on a host file on the Ansible control node. Therefore, open the default hosts file
 
 [winhost]
-Ip 
+Ip of the windows node
 
 [winhost:wars]
 ansible_user=Username
